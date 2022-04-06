@@ -1,28 +1,39 @@
 import React, { createRef, PureComponent } from 'react'
-import { Button, Form, FormInstance, message, Radio } from 'antd'
+import { Button, Form, FormInstance, message, Radio, Select } from 'antd'
 import initExam from './exam'
 import './index.less';
 
 const { Item } = Form
 
 interface IState {
-  exam: string[][]
+  exam: string[][],
+  currentSubject: 0 | 1
 }
 export default class IndexPage extends PureComponent {
   state: Readonly<IState> = {
-    exam: []
+    exam: [],
+    currentSubject: 0
   };
   formRef = createRef<FormInstance>()
   time: NodeJS.Timeout = setTimeout(() => { });
 
   componentDidMount() {
-    this.formatExam(initExam)
+    this.initRenderExam();
+  }
+
+  initRenderExam = () => {
+    const { currentSubject } = this.state;
+    this.formatExam(initExam[currentSubject])
   }
 
   formatExam = (_initExam: { exam: string, answer: string }[]) => {
     const initRandomExamCount = Math.floor(Math.random() * _initExam.length);
     // const initRandomExamCount = 4; 
-    const exam = _initExam[initRandomExamCount].exam.split(/\n|\t/)
+    let exam = []
+    exam = _initExam[initRandomExamCount].exam.split(/\n|\t\t\t\t\t|\t\t\t\t|\t\t\t|\t\t|\t/)
+    exam = exam.map((item) => item.trim().split(/\s+/)).flat(Infinity)
+    console.log(exam);
+    
     const answerList = _initExam[initRandomExamCount].answer;
     const examList: string[][] = []
     let examItem: string[] = []
@@ -37,7 +48,6 @@ export default class IndexPage extends PureComponent {
     answerList.split('').forEach((item, i) => {
       examList[i][5] = item
     })
-    console.log(examList);
     
     this.setState({
       exam: examList
@@ -64,7 +74,7 @@ export default class IndexPage extends PureComponent {
   }
 
   render(): React.ReactNode {
-    const { exam } = this.state;
+    const { exam, currentSubject } = this.state;
 
     return (
       <div
@@ -113,10 +123,26 @@ export default class IndexPage extends PureComponent {
               textAlign: 'center'
             }}
           >
-              <Button onClick={() => this.formatExam(initExam)}>刷新</Button>
+              <Button onClick={() => this.formatExam(initExam[currentSubject])}>刷新</Button>
               <Button onClick={this.submit} type="primary">提交</Button>
           </Item>
         </Form>
+        <div
+          className='select-current-subject'
+        >
+          <Select
+            style={{ width: '100%' }}
+            value={currentSubject}
+            onChange={(currentKey) => {
+              this.setState({
+                currentSubject: currentKey
+              }, this.initRenderExam)
+            }}
+          >
+            <Select.Option value={0}>软件工程</Select.Option>
+            <Select.Option value={1}>中国近代史</Select.Option>
+          </Select>
+        </div>
       </div>
     );
   }
